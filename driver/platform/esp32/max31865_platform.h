@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
 #ifndef MAX31865_PLATFORM_H
 #define MAX31865_PLATFORM_H
 

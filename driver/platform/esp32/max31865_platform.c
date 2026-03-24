@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
 #include <string.h>
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
@@ -23,12 +22,12 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
 }
 
 /**
- * @brief Questa funzione racchiude la logica per leggere dal bus SPI.
+ * @brief Implementa la logica per leggere il buffer SPI tramite ESP32.
  *
  * @param[in] handle                Dispositivo MAX31865.
- * @param[in] reg                   Valore del registro da leggere.
- * @param[in] length                Specifica la dimensione del buffer.
- * @param[out] data                 Buffer con i dati da ricevere.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] length                Dimensione del buffer.
+ * @param[out] data                 Buffer dei dati da ricevere.
  * @retval MAX31865_ERR_OK          Successo.
  * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
  * @retval MAX31865_ERR_FAIL        Errore durante la ricezione dei dati.
@@ -75,15 +74,15 @@ static max31865_err_t spi_read_register(void *handle, const uint8_t reg, const s
 }
 
 /**
- * @brief Questa funzione racchiude la logica per scrivere sul bus SPI.
+ * @brief Implementa la logica per scrivere il buffer SPI tramite ESP32.
  *
  * @param[in] handle                Dispositivo MAX31865.
- * @param[in] reg                   Valore del registro da scrivere.
- * @param[in] length                Specifica la dimensione del buffer.
- * @param[in] data                  Buffer con i dati da inviare.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] length                Dimensione del buffer.
+ * @param[out] data                 Buffer dei dati da inviare.
  * @retval MAX31865_ERR_OK          Successo.
  * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
- * @retval MAX31865_ERR_FAIL        Errore durante l'invio dei dati.
+ * @retval MAX31865_ERR_FAIL        Errore durante la ricezione dei dati.
  */
 static max31865_err_t spi_write_register(void *handle, const uint8_t reg, const size_t length, const uint8_t *data)
 {
@@ -121,9 +120,9 @@ static max31865_err_t spi_write_register(void *handle, const uint8_t reg, const 
 }
 
 /**
- * @brief Questa funzione attende in modo bloccante un certo periodo di tempo.
+ * @brief Blocca per un certo periodo di millisecondi (ms) l'esecuzione del codice.
  *
- * @param[in] ms Valore del tempo di attesa.
+ * @param[in] ms Tempo di attesa.
  */
 static void delay_ms(const uint32_t ms)
 {
@@ -146,7 +145,7 @@ max31865_err_t max31865_init_hal(
 )
 {
     // Verifica il parametro
-    if (device == NULL)
+    if (!device)
         return MAX31865_ERR_INVALID_ARG;
 
     esp_err_t status = ESP_OK;
@@ -180,7 +179,7 @@ max31865_err_t max31865_init_hal(
     device->spi_clk_speed = spi_clk_speed;
     device->reference_resistor = 0.0f;
     device->rtd_nominal_resistance = 0.0f;
-    device->int_pin = -1;
+    device->int_pin = GPIO_NUM_NC;
     device->irq_context = NULL;
     device->irq_callback = NULL;
     device->platform = &max31865_platform;
@@ -192,7 +191,7 @@ max31865_err_t max31865_init_hal(
 max31865_err_t max31865_hal_setup_int(max31865_t *device, const uint8_t int_pin)
 {
     // Verifica il parametro
-    if (device == NULL)
+    if (!device)
         return MAX31865_ERR_INVALID_ARG;
 
     esp_err_t status = ESP_OK;

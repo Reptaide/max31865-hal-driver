@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-
 #include <math.h>
 #include "max31865_core.h"
 
-
+/**
+ * @brief Esegue una funzione e se restituisce
+ * errore, lo propaga interrompendo l'esecuzione.
+ */
 #define MAX31865_ERROR_CHECK(func)      \
     do {                                \
         max31865_err_t __err = (func);  \
@@ -47,7 +49,15 @@ static const float RTD_A = 3.9083e-3;
 static const float RTD_B = -5.775e-7;
 static const float RTD_C = -4.18301e-12;
 
-
+/**
+ * @brief Legge un byte (8 bit) da un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in]  device               Dispositivo MAX31865.
+ * @param[in]  reg                  Indirizzo del registro.
+ * @param[out] data                 Dati da leggere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t read_register_8(max31865_t *device, uint8_t reg, uint8_t *data)
 {
     // Verifica i parametri
@@ -68,7 +78,15 @@ static max31865_err_t read_register_8(max31865_t *device, uint8_t reg, uint8_t *
     return MAX31865_ERR_OK;
 }
 
-
+/**
+ * @brief Scive un byte (8 bit) in un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in] device                Dispositivo MAX31865.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] data                  Dati da scrivere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t write_register_8(max31865_t *device, uint8_t reg, const uint8_t data)
 {
     // Verifica il parametro
@@ -89,7 +107,15 @@ static max31865_err_t write_register_8(max31865_t *device, uint8_t reg, const ui
     return MAX31865_ERR_OK;
 }
 
-
+/**
+ * @brief Legge 2 byte (16 bit) da un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in]  device               Dispositivo MAX31865.
+ * @param[in]  reg                  Indirizzo del registro.
+ * @param[out] data                 Dati da leggere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t read_register_16(max31865_t *device, uint8_t reg, uint16_t *data)
 {
     // Verifica i parametri
@@ -115,7 +141,15 @@ static max31865_err_t read_register_16(max31865_t *device, uint8_t reg, uint16_t
     return MAX31865_ERR_OK;
 }
 
-
+/**
+ * @brief Scive 2 byte (16 bit) in un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in] device                Dispositivo MAX31865.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] data                  Dati da scrivere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t write_register_16(max31865_t *device, uint8_t reg, const uint16_t data)
 {
     // Verifica il parametro
@@ -141,7 +175,15 @@ static max31865_err_t write_register_16(max31865_t *device, uint8_t reg, const u
     return MAX31865_ERR_OK;
 }
 
-
+/**
+ * @brief Legge 4 byte (32 bit) da un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in]  device               Dispositivo MAX31865.
+ * @param[in]  reg                  Indirizzo del registro.
+ * @param[out] data                 Dati da leggere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t read_register_32(max31865_t *device, uint8_t reg, uint32_t *data)
 {
     // Verifica i parametri
@@ -169,7 +211,15 @@ static max31865_err_t read_register_32(max31865_t *device, uint8_t reg, uint32_t
     return MAX31865_ERR_OK;
 }
 
-
+/**
+ * @brief Scive 4 byte (32 bit) in un registro del dispositivo, tramite il protocollo SPI.
+ *
+ * @param[in] device                Dispositivo MAX31865.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] data                  Dati da scrivere.
+ * @retval MAX31865_ERR_OK          Successo.
+ * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
+ */
 static max31865_err_t write_register_32(max31865_t *device, uint8_t reg, const uint32_t data)
 {
     // Verifica il parametro
