@@ -24,9 +24,10 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
 {
     max31865_t *device = (max31865_t *)arg;
 
-    // Se il callback è registrato, lo invoca passandogli il contesto
-    if (device->irq_callback)
-        device->irq_callback(device->irq_context);
+    if (!device || !device->isr_handler)
+        return;
+
+    device->isr_handler(device, device->context);
 }
 
 /**
@@ -82,10 +83,10 @@ static max31865_err_t spi_read_register(
 /**
  * @brief Implementa la logica per scrivere il buffer SPI tramite ESP32.
  *
- * @param[in]  handle               Dispositivo MAX31865.
- * @param[in]  reg                  Indirizzo del registro.
- * @param[in]  length               Dimensione del buffer.
- * @param[out] data                 Buffer dei dati da inviare.
+ * @param[in] handle                Dispositivo MAX31865.
+ * @param[in] reg                   Indirizzo del registro.
+ * @param[in] length                Dimensione del buffer.
+ * @param[in] data                  Buffer dei dati da inviare.
  * @retval MAX31865_ERR_OK          Successo.
  * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
  * @retval MAX31865_ERR_FAIL        Errore durante la ricezione dei dati.
@@ -144,14 +145,14 @@ max31865_err_t max31865_init_hal(max31865_t *device,
     const uint8_t spi_cs_pin,
     const uint32_t spi_clk_speed)
 {
-    // Verifica il parametro
-    if (!device)
+    // Verifica i parametri
+    if (!device || !bus_handle)
         return MAX31865_ERR_INVALID_ARG;
 
     esp_err_t status = ESP_OK;
     spi_device_handle_t device_handle;
 
-    // Configura l'handle SPI del sensore
+    // Configura l'handle SPI del dispositivo
     spi_device_interface_config_t spi_device_config = {
         .address_bits = 0,
         .clock_speed_hz = spi_clk_speed,
@@ -161,14 +162,13 @@ max31865_err_t max31865_init_hal(max31865_t *device,
         .spics_io_num = spi_cs_pin,
     };
 
-    // Inizializza il sensore sul bus SPI
+    // Inizializza il dispositivo sul bus SPI
     status = spi_bus_add_device(bus_handle, &spi_device_config, &device_handle);
 
     if (status != ESP_OK)
         return MAX31865_ERR_FAIL;
 
-    // Inizializza i campi della struttura
-    // del sensore inerenti all'hardware
+    // Inizializza i campi restanti del dispositivo
     device->spi_bus_handle = (void *)bus_handle;
     device->spi_device_handle = (void *)device_handle;
     device->spi_cs_pin = spi_cs_pin;
@@ -176,8 +176,8 @@ max31865_err_t max31865_init_hal(max31865_t *device,
     device->reference_resistor = 0.0f;
     device->rtd_nominal_resistance = 0.0f;
     device->int_pin = GPIO_NUM_NC;
-    device->irq_context = NULL;
-    device->irq_callback = NULL;
+    device->context = NULL;
+    device->isr_handler = NULL;
     device->platform = &max31865_platform;
 
     return MAX31865_ERR_OK;
@@ -191,30 +191,29 @@ max31865_err_t max31865_hal_setup_int(max31865_t *device, const uint8_t int_pin)
 
     esp_err_t status = ESP_OK;
 
-    // Assegna al dispositivo il valore del pin di interrupt
-    device->int_pin = int_pin;
-
-    // Configurazione del pin di interrupt
-    gpio_config_t inta_pin_config = {
-        .intr_type = GPIO_INTR_NEGEDGE, // Imposta l'interrupt quando il segnale passa da high a low
-        .mode = GPIO_MODE_INPUT,        // Configura il pin come input
-        .pin_bit_mask = (1ULL << device->int_pin), // Specifica il GPIO da configurare in base alla
-                                                   // maschera
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,     // Disabilita il pull-down interno sul GPIO
-        .pull_up_en = GPIO_PULLUP_ENABLE,          // Abilita il pull-up interno sul GPIO
+    // Configurazione del pin INT
+    gpio_config_t int_pin_config = {
+        .intr_type = GPIO_INTR_NEGEDGE,        // Imposta l'interrupt active-low
+        .mode = GPIO_MODE_INPUT,               // Configura il pin come input
+        .pin_bit_mask = (1ULL << int_pin),     // Valore del pin da configurare
+        .pull_down_en = GPIO_PULLDOWN_DISABLE, // Disabilita il pull-down interno sul pin
+        .pull_up_en = GPIO_PULLUP_ENABLE,      // Abilita il pull-up interno sul pin
     };
 
     // Applica la configurazione al GPIO
-    status = gpio_config(&inta_pin_config);
+    status = gpio_config(&int_pin_config);
 
     if (status != ESP_OK)
         return MAX31865_ERR_FAIL;
 
-    // Aggiunge l'ISR handler al GPIO specificato
+    // Aggiunge l'ISR handler al GPIO
     status = gpio_isr_handler_add(device->int_pin, gpio_isr_handler, (void *)device);
 
     if (status != ESP_OK)
         return MAX31865_ERR_FAIL;
+
+    // Aggiorna i campi del dispositivo
+    device->int_pin = int_pin;
 
     return MAX31865_ERR_OK;
 }

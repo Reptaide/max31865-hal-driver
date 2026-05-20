@@ -16,12 +16,12 @@
 #include <stdio.h>
 
 #define SPI_BUS SPI2_HOST        // Periferica SPI
-#define SPI_PIN_MISO 11          // MISO/SDO/DOUT
-#define SPI_PIN_MOSI 10          // MOSI/SDI/DIN
-#define SPI_PIN_CLK 14           // CLK
-#define SPI_PIN_CS 13            // CS
+#define SPI_PIN_MISO 1           // MISO/SDO/DOUT
+#define SPI_PIN_MOSI 2           // MOSI/SDI/DIN
+#define SPI_PIN_CLK 3            // CLK
+#define SPI_PIN_CS 12            // CS
 #define SPI_CLK_SPEED_HZ 1000000 // 1 MHz
-#define INT_PIN 12               // DRDY/RDY/INT
+#define INT_PIN 22               // DRDY/RDY/INT
 
 static const char *TAG = "main";
 static TaskHandle_t max31865_task_handle = NULL;
@@ -48,7 +48,7 @@ static void print_reg_8(const char *name, const uint8_t value)
 }
 
 /**
- * @brief Configura e inizializza il bus SPI
+ * @brief Inizializza e configura il bus SPI.
  */
 void spi_bus_init(void)
 {
@@ -69,11 +69,10 @@ void spi_bus_init(void)
 }
 
 /**
- * @brief Questa funzione è responsabile della gestione dell'evento di interrupt.
- * Viene eseguita in un task differente dal main, in questo modo non viene
- * bloccata l'esecuzione dell'applicazione principale.
+ * @brief Task di elaborazione asincrono fuori dal contesto di interrupt che legge i risultati del
+ * dispositivo che ha generato l'interrupt.
  *
- * @param[in] arg Puntatore al dispositivo MAX31865.
+ * @param[in] arg Argomento passato al task.
  */
 static void max31865_task(void *arg)
 {
@@ -101,18 +100,21 @@ static void max31865_task(void *arg)
 }
 
 /**
- * @brief Questa funzione serve a notificare un task quando avviene un interrupt hardware.
+ * @brief ISR callback applicativa utilizzata per notificare un task FreeRTOS. Viene
+ * richiamata dal driver al verificarsi di un interrupt hardware del sensore MAX31865.
  *
- * @param[in] context Contiene il puntatore al TaskHandle_t
+ * @param[in] device   Dispositivo MAX31865 che ha generato l'interrupt.
+ * @param[in] context  Contesto utente contenente il TaskHandle_t del task.
  */
-static void max31865_irq_callback(void *context)
+static void IRAM_ATTR max31865_isr_handler(max31865_t *device, void *context)
 {
+    BaseType_t high_task_wakeup = pdFALSE;
+
     TaskHandle_t task_handle = (TaskHandle_t)context;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    vTaskNotifyGiveFromISR(task_handle, &xHigherPriorityTaskWoken);
+    vTaskNotifyGiveFromISR(task_handle, &high_task_wakeup);
 
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(high_task_wakeup);
 }
 
 void app_main(void)
@@ -141,9 +143,8 @@ void app_main(void)
     // Crea il task per gestire l'evento del sensore
     xTaskCreate(max31865_task, "max31865_task", 4096, &device, 5, &max31865_task_handle);
 
-    // Registra il callback IRQ
-    max31865_register_irq_callback(
-        &device, (max31865_irq_callback_t)max31865_irq_callback, (void *)max31865_task_handle);
+    // Registra la ISR callback e associa il task da notificare all'interrupt
+    max31865_set_isr_handler(&device, max31865_isr_handler, (void *)max31865_task_handle);
 
     // Configura il pin di interrupt
     max31865_hal_setup_int(&device, INT_PIN);

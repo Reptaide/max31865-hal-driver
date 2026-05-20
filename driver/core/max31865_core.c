@@ -86,7 +86,7 @@ static max31865_err_t read_register_8(max31865_t *device, uint8_t reg, uint8_t *
 }
 
 /**
- * @brief Scive un byte (8 bit) in un registro del dispositivo, tramite il protocollo SPI.
+ * @brief Scrive un byte (8 bit) in un registro del dispositivo, tramite il protocollo SPI.
  *
  * @param[in] device                Dispositivo MAX31865.
  * @param[in] reg                   Indirizzo del registro.
@@ -144,38 +144,6 @@ static max31865_err_t read_register_16(max31865_t *device, uint8_t reg, uint16_t
 }
 
 /**
- * @brief Scive 2 byte (16 bit) in un registro del dispositivo, tramite il protocollo SPI.
- *
- * @param[in] device                Dispositivo MAX31865.
- * @param[in] reg                   Indirizzo del registro.
- * @param[in] data                  Dati da scrivere.
- * @retval MAX31865_ERR_OK          Successo.
- * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
- */
-static max31865_err_t write_register_16(max31865_t *device, uint8_t reg, const uint16_t data)
-{
-    // Verifica il parametro
-    if (!device)
-        return MAX31865_ERR_INVALID_ARG;
-
-    // La maschera assicura che il bit superiore sia impostato
-    // REG_WRITE_OFFSET = 0x80 = 0b10000000, questo perché il
-    // dispositivo MAX31865 utilizza il bit 7 del registro così:
-    //  - MSB = 1 -> scrittura
-    //  - MSB = 0 -> lettura
-    reg |= REG_WRITE_OFFSET;
-
-    // Definisce il buffer (big-endian: MSB first)
-    uint8_t buffer[2];
-    buffer[0] = (uint8_t)(data >> 8);   // MSB
-    buffer[1] = (uint8_t)(data & 0xFF); // LSB
-
-    MAX31865_ERROR_CHECK(device->platform->spi_write(device, reg, 2, buffer));
-
-    return MAX31865_ERR_OK;
-}
-
-/**
  * @brief Legge 4 byte (32 bit) da un registro del dispositivo, tramite il protocollo SPI.
  *
  * @param[in]  device               Dispositivo MAX31865.
@@ -208,7 +176,7 @@ static max31865_err_t read_register_32(max31865_t *device, uint8_t reg, uint32_t
 }
 
 /**
- * @brief Scive 4 byte (32 bit) in un registro del dispositivo, tramite il protocollo SPI.
+ * @brief Scrive 4 byte (32 bit) in un registro del dispositivo, tramite il protocollo SPI.
  *
  * @param[in] device                Dispositivo MAX31865.
  * @param[in] reg                   Indirizzo del registro.
@@ -765,10 +733,10 @@ max31865_err_t max31865_stop_conversion(max31865_t *device)
     return MAX31865_ERR_OK;
 }
 
-max31865_err_t max31865_is_data_ready(max31865_t *device, uint8_t *ready)
+max31865_err_t max31865_is_data_ready(max31865_t *device, uint8_t *value)
 {
     // Verifica i parametri
-    if (!device || !ready)
+    if (!device || !value)
         return MAX31865_ERR_INVALID_ARG;
 
     // Legge il registro Configuration
@@ -779,20 +747,20 @@ max31865_err_t max31865_is_data_ready(max31865_t *device, uint8_t *ready)
     reg_val = (reg_val & MASK_CONFIG_ONE_SHOT) >> 5;
 
     // Inverte il valore
-    *ready = reg_val ? 0 : 1;
+    *value = reg_val ? 0 : 1;
 
     return MAX31865_ERR_OK;
 }
 
-max31865_err_t max31865_register_irq_callback(
-    max31865_t *device, max31865_irq_callback_t callback, void *context)
+max31865_err_t max31865_set_isr_handler(
+    max31865_t *device, max31865_isr_handler_t handler, void *context)
 {
     // Verifica i parametri
-    if (!device || !callback || !context)
+    if (!device || !handler)
         return MAX31865_ERR_INVALID_ARG;
 
-    device->irq_callback = callback;
-    device->irq_context = context;
+    device->isr_handler = handler;
+    device->context = context;
 
     return MAX31865_ERR_OK;
 }

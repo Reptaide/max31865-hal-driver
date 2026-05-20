@@ -7,19 +7,16 @@
  * See LICENSE in the root of this repository for the full license text.
  */
 
-#include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_log.h"
 #include "max31865_core.h"
 #include "max31865_platform.h"
 
-#include <stdio.h>
-
 #define SPI_BUS SPI2_HOST        // Periferica SPI
-#define SPI_PIN_MISO 11          // MISO/SDO/DOUT
-#define SPI_PIN_MOSI 10          // MOSI/SDI/DIN
-#define SPI_PIN_CLK 14           // CLK
-#define SPI_PIN_CS 13            // CS
+#define SPI_PIN_MISO 1           // MISO/SDO/DOUT
+#define SPI_PIN_MOSI 2           // MOSI/SDI/DIN
+#define SPI_PIN_CLK 3            // CLK
+#define SPI_PIN_CS 12            // CS
 #define SPI_CLK_SPEED_HZ 1000000 // 1 MHz
 
 static const char *TAG = "main";
@@ -46,7 +43,7 @@ static void print_reg_8(const char *name, const uint8_t value)
 }
 
 /**
- * @brief Configura e inizializza il bus SPI
+ * @brief Inizializza e configura il bus SPI.
  */
 void spi_bus_init(void)
 {
@@ -66,9 +63,6 @@ void spi_bus_init(void)
     ESP_LOGI(TAG, "SPI bus initialized successfully");
 }
 
-/**
- * @brief Entrypoint
- */
 void app_main(void)
 {
     uint8_t config = 0;
