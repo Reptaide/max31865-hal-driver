@@ -18,7 +18,7 @@
 /**
  * @brief Questa è la funzione che viene chiamata dopo un evento di interrupt.
  *
- * @param[in] arg Recupera il puntatore del dispositivo (passato al momento della registrazione).
+ * @param[in] arg Puntatore generico contenente varie informazioni.
  */
 static void IRAM_ATTR gpio_isr_handler(void *arg)
 {
