@@ -29,7 +29,8 @@ static const char *TAG = "main";
  */
 static void print_reg_8(const char *name, const uint8_t value)
 {
-    ESP_LOGI(TAG,
+    ESP_LOGI(
+        TAG,
         "%s (D[7:0]): %u %u %u %u %u %u %u %u",
         name,
         (value >> 7) & 0x01,
@@ -39,7 +40,8 @@ static void print_reg_8(const char *name, const uint8_t value)
         (value >> 3) & 0x01,
         (value >> 2) & 0x01,
         (value >> 1) & 0x01,
-        (value >> 0) & 0x01);
+        (value >> 0) & 0x01
+    );
 }
 
 /**

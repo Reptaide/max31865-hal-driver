@@ -13,8 +13,6 @@
 #include "max31865_core.h"
 #include "max31865_platform.h"
 
-#include <stdio.h>
-
 #define SPI_BUS SPI2_HOST        // Periferica SPI
 #define SPI_PIN_MISO 1           // MISO/SDO/DOUT
 #define SPI_PIN_MOSI 2           // MOSI/SDI/DIN
@@ -34,7 +32,8 @@ static TaskHandle_t max31865_task_handle = NULL;
  */
 static void print_reg_8(const char *name, const uint8_t value)
 {
-    ESP_LOGI(TAG,
+    ESP_LOGI(
+        TAG,
         "%s (D[7:0]): %u %u %u %u %u %u %u %u",
         name,
         (value >> 7) & 0x01,
@@ -44,7 +43,8 @@ static void print_reg_8(const char *name, const uint8_t value)
         (value >> 3) & 0x01,
         (value >> 2) & 0x01,
         (value >> 1) & 0x01,
-        (value >> 0) & 0x01);
+        (value >> 0) & 0x01
+    );
 }
 
 /**

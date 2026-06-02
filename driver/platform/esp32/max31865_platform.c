@@ -42,7 +42,11 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
  * @retval MAX31865_ERR_FAIL        Errore durante la ricezione dei dati.
  */
 static max31865_err_t spi_read_register(
-    void *handle, const uint8_t reg, const size_t length, uint8_t *data)
+    void *handle,
+    const uint8_t reg,
+    const size_t length,
+    uint8_t *data
+)
 {
     // Verifica i parametri
     if (!handle || !data || length == 0)
@@ -92,7 +96,11 @@ static max31865_err_t spi_read_register(
  * @retval MAX31865_ERR_FAIL        Errore durante la ricezione dei dati.
  */
 static max31865_err_t spi_write_register(
-    void *handle, const uint8_t reg, const size_t length, const uint8_t *data)
+    void *handle,
+    const uint8_t reg,
+    const size_t length,
+    const uint8_t *data
+)
 {
     // Verifica i parametri
     if (!handle || !data || length == 0)
@@ -129,10 +137,7 @@ static max31865_err_t spi_write_register(
  *
  * @param[in] ms Tempo di attesa.
  */
-static void delay_ms(const uint32_t ms)
-{
-    vTaskDelay(pdMS_TO_TICKS(ms));
-}
+static void delay_ms(const uint32_t ms) { vTaskDelay(pdMS_TO_TICKS(ms)); }
 
 static const max31865_platform_t max31865_platform = {
     .spi_read = spi_read_register,
@@ -140,10 +145,12 @@ static const max31865_platform_t max31865_platform = {
     .delay_ms = delay_ms,
 };
 
-max31865_err_t max31865_init_hal(max31865_t *device,
+max31865_err_t max31865_init_hal(
+    max31865_t *device,
     spi_host_device_t bus_handle,
     const uint8_t spi_cs_pin,
-    const uint32_t spi_clk_speed)
+    const uint32_t spi_clk_speed
+)
 {
     // Verifica i parametri
     if (!device || !bus_handle)

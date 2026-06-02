@@ -14,8 +14,7 @@
 #include "max31865_core.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
     /**
@@ -29,10 +28,12 @@ extern "C"
      * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
      * @retval MAX31865_ERR_FAIL        Errore nella configurazione dell'ISR o del pin.
      */
-    max31865_err_t max31865_init_hal(max31865_t *device,
+    max31865_err_t max31865_init_hal(
+        max31865_t *device,
         spi_host_device_t bus_handle,
         const uint8_t spi_cs_pin,
-        const uint32_t spi_clk_speed);
+        const uint32_t spi_clk_speed
+    );
 
     /**
      * @brief Configura il pin di interrupt e registra la ISR.

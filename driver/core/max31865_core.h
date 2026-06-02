@@ -14,35 +14,39 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
     typedef struct max31865_t max31865_t;
 
-    typedef enum
-    {
+    typedef enum {
         MAX31865_ERR_OK = 0,
         MAX31865_ERR_FAIL,
         MAX31865_ERR_INVALID_ARG,
     } max31865_err_t;
 
     typedef max31865_err_t (*max31865_read_register_t)(
-        void *handle, const uint8_t reg, const size_t length, uint8_t *data);
+        void *handle,
+        const uint8_t reg,
+        const size_t length,
+        uint8_t *data
+    );
     typedef max31865_err_t (*max31865_write_register_t)(
-        void *handle, const uint8_t reg, const size_t length, const uint8_t *data);
+        void *handle,
+        const uint8_t reg,
+        const size_t length,
+        const uint8_t *data
+    );
     typedef void (*max31865_time_delay_t)(const uint32_t ms);
     typedef void (*max31865_isr_handler_t)(max31865_t *device, void *context);
 
-    typedef struct
-    {
+    typedef struct {
         max31865_read_register_t spi_read;
         max31865_write_register_t spi_write;
         max31865_time_delay_t delay_ms;
     } max31865_platform_t;
 
-    struct max31865_t
-    {
+    struct max31865_t {
         void *spi_bus_handle;                // Handler del bus SPI
         void *spi_device_handle;             // Handler dispositivo SPI
         uint8_t spi_cs_pin;                  // Pin del chip-select
@@ -66,11 +70,13 @@ extern "C"
      * @retval MAX31865_ERR_OK              Successo.
      * @retval MAX31865_ERR_INVALID_ARG     Parametri non validi.
      */
-    max31865_err_t max31865_init_core(max31865_t *device,
+    max31865_err_t max31865_init_core(
+        max31865_t *device,
         const float reference_resistor,
         const float rtd_nominal_resistance,
         const uint8_t wire_number,
-        const uint8_t filter_mode);
+        const uint8_t filter_mode
+    );
 
     /**
      * @brief Ottiene lo stato dal registro di configurazione.
@@ -92,7 +98,10 @@ extern "C"
      * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
      */
     max31865_err_t max31865_set_config(
-        max31865_t *device, const uint8_t bitmask, const uint8_t value);
+        max31865_t *device,
+        const uint8_t bitmask,
+        const uint8_t value
+    );
 
     /**
      * @brief Converte una resistenza RTD in gradi Celsius.
@@ -181,7 +190,10 @@ extern "C"
      * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
      */
     max31865_err_t max31865_set_celsius_threshold(
-        max31865_t *device, const float lower, const float upper);
+        max31865_t *device,
+        const float lower,
+        const float upper
+    );
 
     /**
      * @brief Restituisce lo stato del ciclo di rilevamento dei fault.
@@ -284,7 +296,10 @@ extern "C"
      * @retval MAX31865_ERR_INVALID_ARG Parametri non validi.
      */
     max31865_err_t max31865_set_isr_handler(
-        max31865_t *device, max31865_isr_handler_t handler, void *context);
+        max31865_t *device,
+        max31865_isr_handler_t handler,
+        void *context
+    );
 
 #ifdef __cplusplus
 }

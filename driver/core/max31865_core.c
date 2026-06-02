@@ -23,8 +23,8 @@
             return __err;                                                                          \
     } while (0)
 
-static const uint16_t
-    MAX31865_ADC_RESOLUTION = 1 << 15; // Il MAX31865 ha un ADC a 15 bit (2^15 = 32768)
+static const uint16_t MAX31865_ADC_RESOLUTION = 1
+    << 15; // Il MAX31865 ha un ADC a 15 bit (2^15 = 32768)
 
 /**
  * @brief Definizione dei registri.
@@ -170,7 +170,7 @@ static max31865_err_t read_register_32(max31865_t *device, uint8_t reg, uint32_t
 
     // Combina i byte per ricostruire il dato (big-endian: MSB first)
     *data = ((uint32_t)buffer[0] << 24) | ((uint32_t)buffer[1] << 16) | ((uint32_t)buffer[2] << 8) |
-            ((uint32_t)buffer[3]);
+        ((uint32_t)buffer[3]);
 
     return MAX31865_ERR_OK;
 }
@@ -209,11 +209,13 @@ static max31865_err_t write_register_32(max31865_t *device, uint8_t reg, const u
     return MAX31865_ERR_OK;
 }
 
-max31865_err_t max31865_init_core(max31865_t *device,
+max31865_err_t max31865_init_core(
+    max31865_t *device,
     const float reference_resistor,
     const float rtd_nominal_resistance,
     const uint8_t wire_number,
-    const uint8_t filter_mode)
+    const uint8_t filter_mode
+)
 {
     // Verifica i parametri
     if (!device || wire_number > 1 || filter_mode > 1)
@@ -316,8 +318,7 @@ max31865_err_t max31865_rtd_to_celsius(max31865_t *device, const uint16_t rtd, f
 
     // Approssimazione polinomiale di quinto grado (+0.0001°C/-0.00005°C)
     *celsius = -242.02f +
-               r * (2.2228f +
-                       r * (2.5859e-3f + r * (-4.8260e-6f + r * (-2.8183e-8f + r * 1.5243e-10f))));
+        r * (2.2228f + r * (2.5859e-3f + r * (-4.8260e-6f + r * (-2.8183e-8f + r * 1.5243e-10f))));
 
     // Approssimazione polinomiale di quarto grado (+0.0022°C/-0.001°C)
     // *celsius = -241.96f + r * (2.2163f + r * (2.8541e-3f + r * (-9.9121e-6f + r * -1.7052e-8f)));
@@ -338,8 +339,8 @@ max31865_err_t max31865_celsius_to_rtd(max31865_t *device, float celsius, uint16
         return MAX31865_ERR_INVALID_ARG;
 
     // La seguente formula è valida solo per valori sopra 0°C (compreso)
-    float r_rtd = device->rtd_nominal_resistance *
-                  (1.0f + (RTD_A * celsius) + (RTD_B * celsius * celsius));
+    float r_rtd =
+        device->rtd_nominal_resistance * (1.0f + (RTD_A * celsius) + (RTD_B * celsius * celsius));
 
     // La seguente formula viene aggiunta solo per valori sotto 0°C (escluso)
     if (celsius < 0.0f)
@@ -479,7 +480,10 @@ max31865_err_t max31865_get_celsius_threshold(max31865_t *device, float *lower, 
 }
 
 max31865_err_t max31865_set_celsius_threshold(
-    max31865_t *device, const float lower, const float upper)
+    max31865_t *device,
+    const float lower,
+    const float upper
+)
 {
     // Verifica i parametri
     if (!device || upper < lower)
@@ -520,28 +524,28 @@ max31865_err_t max31865_read_fault_detection_cycle(max31865_t *device, uint8_t *
 
     switch (reg_val)
     {
-        // Rilevamento terminato
-        case 0x00:
-            *state = 0;
-            break;
+    // Rilevamento terminato
+    case 0x00:
+        *state = 0;
+        break;
 
-        // Rilevamento automatico in esecuzione
-        case 0x01:
-            *state = 1;
-            break;
+    // Rilevamento automatico in esecuzione
+    case 0x01:
+        *state = 1;
+        break;
 
-        // Ciclo 1 rilevamento manuale in esecuzione
-        case 0x02:
-            *state = 2;
-            break;
+    // Ciclo 1 rilevamento manuale in esecuzione
+    case 0x02:
+        *state = 2;
+        break;
 
-        // Ciclo 2 rilevamento manuale in esecuzione
-        case 0x03:
-            *state = 3;
-            break;
+    // Ciclo 2 rilevamento manuale in esecuzione
+    case 0x03:
+        *state = 3;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     return MAX31865_ERR_OK;
@@ -556,28 +560,28 @@ max31865_err_t max31865_start_fault_detection(max31865_t *device, const uint8_t 
     // Determina il tipo di rilevamento da utilizzare
     switch (mode)
     {
-        case 0:
-            // Per abilitare il rilevamento dei guasti con il delay automatico (100 us)
-            // è necessario scrivere 0b100X010X nel registro di configurazione.
-            // La X indica che quei bit possono assumere qualsiasi valore.
-            MAX31865_ERROR_CHECK(max31865_set_config(device, 0b11101110, 0b10000100));
-            break;
+    case 0:
+        // Per abilitare il rilevamento dei guasti con il delay automatico (100 us)
+        // è necessario scrivere 0b100X010X nel registro di configurazione.
+        // La X indica che quei bit possono assumere qualsiasi valore.
+        MAX31865_ERROR_CHECK(max31865_set_config(device, 0b11101110, 0b10000100));
+        break;
 
-        case 1:
-            // Abilita il bias
-            MAX31865_ERROR_CHECK(max31865_set_config(device, 0b10000000, 0b10000000));
+    case 1:
+        // Abilita il bias
+        MAX31865_ERROR_CHECK(max31865_set_config(device, 0b10000000, 0b10000000));
 
-            // Attende 10 ms
-            device->platform->delay_ms(10);
+        // Attende 10 ms
+        device->platform->delay_ms(10);
 
-            // Per avviare il rilevamento dei guasti con il delay manuale
-            // è necessario scrivere 0b100X100X nel registro di configurazione.
-            // La X indica che quei bit possono assumere qualsiasi valore.
-            MAX31865_ERROR_CHECK(max31865_set_config(device, 0b11101110, 0b10001000));
-            break;
+        // Per avviare il rilevamento dei guasti con il delay manuale
+        // è necessario scrivere 0b100X100X nel registro di configurazione.
+        // La X indica che quei bit possono assumere qualsiasi valore.
+        MAX31865_ERROR_CHECK(max31865_set_config(device, 0b11101110, 0b10001000));
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     return MAX31865_ERR_OK;
@@ -753,7 +757,10 @@ max31865_err_t max31865_is_data_ready(max31865_t *device, uint8_t *value)
 }
 
 max31865_err_t max31865_set_isr_handler(
-    max31865_t *device, max31865_isr_handler_t handler, void *context)
+    max31865_t *device,
+    max31865_isr_handler_t handler,
+    void *context
+)
 {
     // Verifica i parametri
     if (!device || !handler)
