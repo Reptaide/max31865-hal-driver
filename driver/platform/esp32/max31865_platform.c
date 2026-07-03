@@ -214,7 +214,7 @@ max31865_err_t max31865_hal_setup_int(max31865_t *device, const uint8_t int_pin)
         return MAX31865_ERR_FAIL;
 
     // Aggiunge l'ISR handler al GPIO
-    status = gpio_isr_handler_add(device->int_pin, gpio_isr_handler, (void *)device);
+    status = gpio_isr_handler_add(int_pin, gpio_isr_handler, (void *)device);
 
     if (status != ESP_OK)
         return MAX31865_ERR_FAIL;
